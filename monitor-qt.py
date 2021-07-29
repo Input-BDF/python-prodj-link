@@ -6,20 +6,21 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtCore import Qt
 import signal
 import argparse
+import os
 
 from prodj.core.prodj import ProDj
 from prodj.gui.gui import Gui
 
 def arg_size(value):
-  number = int(value)
-  if number < 1000 or number > 60000:
-    raise argparse.ArgumentTypeError("%s is not between 1000 and 60000".format(value))
-  return number
+    number = int(value)
+    if number < 1000 or number > 60000:
+        raise argparse.ArgumentTypeError("%s is not between 1000 and 60000".format(value))
+    return number
 
 def arg_layout(value):
-  if value not in ["xy", "yx", "xx", "yy", "row", "column"]:
-    raise argparse.ArgumentTypeError("%s is not a value from the list xy, yx, xx, yy, row or column".format(value))
-  return value
+    if value not in ["xy", "yx", "xx", "yy", "row", "column"]:
+        raise argparse.ArgumentTypeError("%s is not a value from the list xy, yx, xx, yy, row or column".format(value))
+    return value
 
 parser = argparse.ArgumentParser(description='Python ProDJ Link')
 provider_group = parser.add_mutually_exclusive_group()
@@ -43,11 +44,11 @@ prodj = ProDj()
 prodj.data.pdb_enabled = args.enable_pdb
 prodj.data.dbc_enabled = args.enable_dbc
 if args.chunk_size is not None:
-  prodj.nfs.setDownloadChunkSize(args.chunk_size)
+    prodj.nfs.setDownloadChunkSize(args.chunk_size)
 app = QApplication([])
 gui = Gui(prodj, show_color_waveform=args.color_waveform or args.color, show_color_preview=args.color_preview or args.color, arg_layout=args.layout)
 if args.fullscreen:
-  gui.setWindowState(Qt.WindowFullScreen | Qt.WindowMaximized | Qt.WindowActive)
+    gui.setWindowState(Qt.WindowFullScreen | Qt.WindowMaximized | Qt.WindowActive)
 
 pal = app.palette()
 pal.setColor(QPalette.Window, Qt.black)
@@ -68,6 +69,9 @@ prodj.start()
 prodj.vcdj_set_player_number(5)
 prodj.vcdj_enable()
 
-app.exec()
-logging.info("Shutting down...")
-prodj.stop()
+try:
+    app.exec()
+    logging.info("Shutting down normaly...")
+    prodj.stop()
+except Exception as ex:
+    logging.info(f"Shutting down abnormaly...{ex}")

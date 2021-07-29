@@ -22,17 +22,17 @@ args = parser.parse_args()
 logging.basicConfig(level=args.loglevel, format='%(levelname)s: %(message)s')
 
 if args.rtmidi:
-  from prodj.midi.midiclock_rtmidi import MidiClock
+    from prodj.midi.midiclock_rtmidi import MidiClock
 else:
-  from prodj.midi.midiclock_alsaseq import MidiClock
+    from prodj.midi.midiclock_alsaseq import MidiClock
 
 c = MidiClock()
 
 if args.list_ports:
-  for id, name, ports in c.iter_alsa_seq_clients():
-    logging.info("MIDI device %d: %s, ports: %s",
-      id, name, ', '.join([str(x) for x in ports]))
-  sys.exit(0)
+    for id, name, ports in c.iter_alsa_seq_clients():
+        logging.info("MIDI device %d: %s, ports: %s",
+            id, name, ', '.join([str(x) for x in ports]))
+    sys.exit(0)
 
 c.open(args.device, args.port)
 
@@ -45,28 +45,28 @@ beat = 0
 c.setBpm(bpm)
 
 def update_master(player_number):
-  global bpm, beat, p
-  client = p.cl.getClient(player_number)
-  if client is None or not 'master' in client.state:
-    return
-  if (args.notes or args.single_notes) and beat != client.beat:
-    note = args.base_note
-    if args.notes:
-      note += client.beat
-    c.send_note(note)
-  newbpm = client.bpm*client.actual_pitch
-  if bpm != newbpm:
-    c.setBpm(newbpm)
-    bpm = newbpm
+    global bpm, beat, p
+    client = p.cl.getClient(player_number)
+    if client is None or not 'master' in client.state:
+        return
+    if (args.notes or args.single_notes) and beat != client.beat:
+        note = args.base_note
+        if args.notes:
+            note += client.beat
+        c.send_note(note)
+    newbpm = client.bpm*client.actual_pitch
+    if bpm != newbpm:
+        c.setBpm(newbpm)
+        bpm = newbpm
 
 p.set_client_change_callback(update_master)
 
 try:
-  p.start()
-  p.vcdj_enable()
-  c.start()
-  p.join()
+    p.start()
+    p.vcdj_enable()
+    c.start()
+    p.join()
 except KeyboardInterrupt:
-  logging.info("Shutting down...")
-  c.stop()
-  p.stop()
+    logging.info("Shutting down...")
+    c.stop()
+    p.stop()
